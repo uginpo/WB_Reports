@@ -18,11 +18,11 @@ year_c = years_list[2]
 
 path_to_data = f'/Users/uginpo/OneDrive - gxog/Отчеты ВБ/{client}/Сведенные/{year_c}/'
 
-name__price = "Закупка.xlsx"  # файл закупочных цен для расчета прибыли
-name__list_otchet = "Отчеты.xlsx"  # список отчетов с доп. информацией - хранение и пр.
+name__price = f'Закупка_{client}_{year_c}.xlsx'             # файл закупочных цен для расчета прибыли
+name__list_otchet = f'Отчеты_{client}_{year_c}.xlsx'  # список отчетов с доп. информацией - хранение и пр.
 
-name__analitic = 'Аналитика.xlsx'
-report__pivot = 'Сводный отчет.xlsx'
+name__analitic = f'/Аналитика/Аналитика_{client}_{year_c}.xlsx'
+report__pivot = f'/Аналитика/Сводный отчет_{client}_{year_c}.xlsx'
 
 name_price = path_to_data + name__price
 name_list_otchet = path_to_data + name__list_otchet
@@ -32,42 +32,36 @@ report_pivot = path_to_data + report__pivot
 # Открытие списка отчетов
 # Открытие прайслиста
 df_list_otchet = pd.read_excel(name_list_otchet, header=0)  # список отчетов
-df_list_otchet['Дата начала']=df_list_otchet['Дата начала'].dt.strftime('%d/%m/%Y')
+df_list_otchet['Дата начала'] = df_list_otchet['Дата начала'].dt.strftime('%d/%m/%Y')
 
 df_price = pd.read_excel(name_price, header=0)  # pricelist закупочных цен
 
-if os.path.isfile(name_analitic):
-    df_analitic = pd.read_excel(name_analitic, sheet_name=[0, 1], header=0)
-else:
-    df_analitic = False
 # Необходимые колонки из отчета
 
 my_headers = ['Артикул поставщика', 'Название', 'Кол-во', 'Вайлдберриз реализовал Товар (Пр)',
-              'Возмещение за выдачу и возврат товаров на ПВЗ', 'Возмещение издержек по эквайрингу',
               'Вознаграждение Вайлдберриз (ВВ), без НДС', 'НДС с Вознаграждения Вайлдберриз',
-              'К перечислению Продавцу за реализованный Товар', 'Количество доставок', 'Количество возврата',
-              'Услуги по доставке товара покупателю', 'Общая сумма штрафов']
+              'К перечислению Продавцу за реализованный Товар',
+              'Услуги по доставке товара покупателю', 'Общая сумма штрафов',
+              'Обоснование для оплаты', 'Виды логистики, штрафов и доплат']
 
-new_headers = ['Артикул поставщика', 'Название', 'Кол-во', 'Количество доставок', 'Количество возврата',
-               'Вайлдберриз реализовал Товар (Пр)',
+new_headers = ['Артикул поставщика', 'Название', 'Кол-во',
+               'Ликвидация брака', 'Вайлдберриз реализовал Товар (Пр)',
                'Вознаграждение ВБ', 'Услуги по доставке товара покупателю',
                'Очищенная выручка']
 
-final_column_list = ['Артикул поставщика', 'Название', 'Кол-во', 'Кол-во доставок', 'Кол-во возврата',
-                     'Реализация ВБ', 'Вознаграждение ВБ',
-                     'Логистика',
-                     'Очищенная выручка']
-
-final_headers = ['Отчет', 'Дата начала', 'Артикул поставщика', 'Название', 'Кол-во', 'Кол-во доставок',
-                 'Кол-во возврата', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика',
-                 'Очищенная выручка', 'Закупочная цена', 'Сумма закупки', 'Доход']
-
-list_profit_lost = ['Отчет', 'Дата начала', 'Кол-во', 'Сумма закупки', 'Логистика',
+list_profit_lost = ['Отчет', 'Дата начала', 'Кол-во', 'Сумма закупки', 'Логистика', 'Сумма брака',
                     'Хранение', 'Удержания', 'Очищенная выручка', 'Доход']
 
-# Цикл по недельным отчетам
+final_column_list = ['Артикул поставщика', 'Название', 'Кол-во',
+                     'Ликвидация брака', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика', 'Очищенная выручка']
 
-# In[272]:
+final_headers = ['Отчет', 'Дата начала', 'Артикул поставщика', 'Название', 'Кол-во',
+                 'Ликвидация брака', 'Сумма брака', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика',
+                 'Очищенная выручка', 'Закупочная цена', 'Сумма закупки', 'Доход']
+
+list_itog = ['Кол-во', 'Сумма закупки', 'Логистика', 'Сумма брака', 'Очищенная выручка', 'Доход']
+df_analitic=False
+# Цикл по недельным отчетам
 
 
 for i in range(df_list_otchet.shape[0]):
@@ -80,14 +74,21 @@ for i in range(df_list_otchet.shape[0]):
 
     df = df.loc[:, my_headers]
 
-    df['Вознаграждение ВБ'] = df[my_headers[4:8]].sum(axis=1)
-    df['Очищенная выручка'] = df['К перечислению Продавцу за реализованный Товар'] - df[
-        'Услуги по доставке товара покупателю']
+    # Удаление строк по 'Возмещение издержек по перевозке'
+    ind = df.loc[df['Обоснование для оплаты'].isin(['Возмещение издержек по перевозке'])].index
+    df.drop(ind, axis=0, inplace=True)
+    df['Ликвидация брака'] = 1 * df['Виды логистики, штрафов и доплат'].isin(['Возврат брака (К продавцу)']).astype(int)
+
+    df['Вознаграждение ВБ'] = df[my_headers[4:6]].sum(axis=1)
+    df['Очищенная выручка'] = (df['К перечислению Продавцу за реализованный Товар'] -
+                               df['Услуги по доставке товара покупателю'] - df['Общая сумма штрафов'])
 
     df = df.loc[:, new_headers]
     df.columns = final_column_list
 
-    df = df.groupby(['Артикул поставщика', 'Название'])[final_column_list[2:]].sum().reset_index()
+    # Группировка по товарам
+    df = df.groupby(['Артикул поставщика', 'Название'])[
+        df.select_dtypes(include=[np.number]).columns].sum().reset_index()
 
     df_f = df.copy(deep=True)
 
@@ -98,42 +99,51 @@ for i in range(df_list_otchet.shape[0]):
     df_f[list_to_add] = 0
 
     df_f = pd.merge(df_f, df_price)
-    df_f = df_f.loc[:, final_headers]
 
-    df_f['Сумма закупки'] = df_f['Кол-во'] * df_f['Закупочная цена']
+    df_f['Сумма закупки'] = (df_f['Кол-во'] + df['Ликвидация брака']) * df_f['Закупочная цена']
     df_f['Доход'] = df_f['Очищенная выручка'] - df_f['Сумма закупки']
+    df_f['Сумма брака'] = df['Ликвидация брака'] * df_f['Закупочная цена']
+
+    df_f = df_f.loc[:, final_headers]
+    ind = df_f['Артикул поставщика'].isin(['Неопознанный товар'])
+    if ind.any():
+        row = df_f[ind].index[0]
+        df_f = df_f.shift()
+        df_f.iloc[0, :], df_f.iloc[row + 1] = df_f.iloc[row + 1], df_f.iloc[0, :]
+        df_f = df_f.drop(row + 1, axis=0).reset_index()
 
     # Отчет по продажам сформирован
     # Формирование отчета по прибылям и убыткам
 
-    df_pr_lost = pd.DataFrame(np.zeros(9).reshape(1, 9), columns=list_profit_lost)
+    df_pr_lost = pd.DataFrame(np.zeros(len(list_profit_lost)).reshape(1, len(list_profit_lost)),
+                              columns=list_profit_lost)
 
     #    Подсчет итогов (суммирование итогов недельных продаж
-
-    list_itog = ['Кол-во', 'Сумма закупки', 'Логистика', 'Очищенная выручка', 'Доход']
 
     df_pr_lost[['Отчет', 'Дата начала']] = df_otchet[['Отчет', 'Дата начала']]
     df_pr_lost[list_itog] = df_f[list_itog].sum()
     df_pr_lost[['Хранение', 'Удержания']] = df_otchet[['Хранение', 'Удержания']]
     df_pr_lost['Доход'] = df_pr_lost['Доход'] - df_pr_lost['Хранение'] - df_pr_lost['Удержания']
 
-    if not df_analitic:
+    if df_analitic:
+        df_analitic[0] = pd.concat([df_analitic[0], df_f], axis=0, ignore_index=True)
+        df_analitic[1] = pd.concat([df_analitic[1], df_pr_lost], axis=0, ignore_index=True)
+    else:
         df_analitic = dict()
         df_analitic[0] = df_f.copy(deep=True)
         df_analitic[1] = df_pr_lost.copy(deep=True)
-    else:
-        df_analitic[0] = pd.concat([df_analitic[0], df_f], axis=0, ignore_index=True)
-        df_analitic[1] = pd.concat([df_analitic[1], df_pr_lost], axis=0, ignore_index=True)
+
+if not os.path.isdir(path_to_data + "Аналитика"):
+    os.mkdir(path_to_data + "Аналитика")
 
 with pd.ExcelWriter(name_analitic, engine='xlsxwriter') as wb:
     df_analitic[0].to_excel(wb, sheet_name='sales', index=False, float_format="%0.2f")
     df_analitic[1].to_excel(wb, sheet_name='profits', index=False, float_format="%0.2f")
     sheet = wb.sheets['sales']
-    # sheet.autofilter(0, 0, 0, 15)
-    sheet.set_column('A:A', 15)
-    sheet.set_column('B:B', 15)
-    sheet.set_column('C:C', 45)
-    sheet.set_column('D:P', 14)
+    sheet.set_column('A:B', 15)
+    sheet.set_column('C:C', 35)
+    sheet.set_column('D:D', 45)
+    sheet.set_column('E:P', 14)
 
     sheet0 = wb.sheets['profits']
     sheet0.set_column('A:I', 15)

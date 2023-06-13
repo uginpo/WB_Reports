@@ -15,11 +15,11 @@ year_c = years_list[2]
 
 path_to_data = f'/Users/uginpo/OneDrive - gxog/Отчеты ВБ/{client}/Сведенные/{year_c}/'
 
-name__price = "Закупка.xlsx"  # файл закупочных цен для расчета прибыли
-name__list_otchet = "Отчеты.xlsx"  # список отчетов с доп. информацией - хранение и пр.
+name__price = f'Закупка_{client}_{year_c}.xlsx'             # файл закупочных цен для расчета прибыли
+name__list_otchet = f'Отчеты_{client}_{year_c}.xlsx'  # список отчетов с доп. информацией - хранение и пр.
 
-name__analitic = 'Аналитика.xlsx'
-report__pivot = 'Сводный отчет.xlsx'
+name__analitic = f'/Аналитика/Аналитика_{client}_{year_c}.xlsx'
+report__pivot = f'/Аналитика/Сводный отчет_{client}_{year_c}.xlsx'
 
 name_price = path_to_data + name__price
 name_list_otchet = path_to_data + name__list_otchet
@@ -42,9 +42,9 @@ goods_r = 'all'
 month_d = {'01': 'Январь', '02': 'Февраль', '03': 'Март', '04': 'Апрель', '05': 'Май', '06': 'Июнь',
            '07': 'Июль', '08': 'Август', '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь'}
 
-sum_list = ['Кол-во', 'Кол-во доставок', 'Кол-во возврата', 'Реализация ВБ', 'Вознаграждение ВБ',
-            'Логистика', 'Очищенная выручка', 'Сумма закупки', 'Доход']
-sum_list_pr = ['Кол-во', 'Сумма закупки', 'Логистика', 'Хранение', 'Удержания', 'Очищенная выручка', 'Доход']
+sum_list=['Кол-во', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика',
+          'Очищенная выручка', 'Сумма закупки','Сумма брака','Доход']
+sum_list_pr=['Кол-во','Сумма закупки', 'Сумма брака', 'Логистика', 'Хранение', 'Удержания','Очищенная выручка','Доход']
 
 df_f = df_analitic[0].copy(deep=True)
 df_pr_lost = df_analitic[1].copy(deep=True)
@@ -56,8 +56,7 @@ for df_ind in list_df:
     df_ind['Дата начала'] = pd.to_datetime(df_ind['Дата начала'], format='%d/%m/%Y')
     df_ind["Месяц"] = df_ind['Дата начала'].dt.month.astype(str).str.zfill(2)
 
-#df_f = df_f.replace({'Месяц': month_d})
-#df_pr_lost = df_pr_lost.replace({'Месяц': month_d})
+
 year_f = df_f['Дата начала'].dt.year.astype(str)[0]
 
 df_f = df_f.groupby(['Месяц', 'Артикул поставщика', 'Название'])[sum_list].sum()
@@ -82,7 +81,6 @@ with pd.ExcelWriter(report_pivot, engine='xlsxwriter') as wb:
     df_b.to_excel(wb, sheet_name='sales ' + year_f, index=False, float_format="%0.2f", freeze_panes=(1, 0))
     df_pr_b.to_excel(wb, sheet_name='profits ' + year_f, index=False, float_format="%0.2f", freeze_panes=(1, 0))
     sheet = wb.sheets['sales ' + year_f]
-    # sheet.autofilter(0, 0, 0, 15)
     sheet.set_column('A:A', 20)
     sheet.set_column('B:B', 30)
     sheet.set_column('C:C', 35)
@@ -130,7 +128,7 @@ with pd.ExcelWriter(report_pivot, engine='xlsxwriter') as wb:
 
     # Форматирование второго листа
     sheet0 = wb.sheets['profits ' + year_f]
-    sheet0.set_column('A:H', 20)
+    sheet0.set_column('A:L', 20)
 
     # Add a header format.
     header_format = wb.book.add_format({
