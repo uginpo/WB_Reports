@@ -10,12 +10,12 @@ import sys
 clients = ['ООО Исток', 'ИП Искандаров', 'ИП Бурдукова', 'ИП Тараканов']
 years_list = ['2021', '2022', '2023']
 
-client = clients[1]
+client = clients[3]
 year_c = years_list[2]
 
 path_to_data = f'/Users/uginpo/OneDrive - gxog/Отчеты ВБ/{client}/Сведенные/{year_c}/'
 
-name__price = f'Закупка_{client}_{year_c}.xlsx'             # файл закупочных цен для расчета прибыли
+name__price = f'Закупка_{client}_{year_c}.xlsx'  # файл закупочных цен для расчета прибыли
 name__list_otchet = f'Отчеты_{client}_{year_c}.xlsx'  # список отчетов с доп. информацией - хранение и пр.
 
 name__analitic = f'/Аналитика/Аналитика_{client}_{year_c}.xlsx'
@@ -42,9 +42,10 @@ goods_r = 'all'
 month_d = {'01': 'Январь', '02': 'Февраль', '03': 'Март', '04': 'Апрель', '05': 'Май', '06': 'Июнь',
            '07': 'Июль', '08': 'Август', '09': 'Сентябрь', '10': 'Октябрь', '11': 'Ноябрь', '12': 'Декабрь'}
 
-sum_list=['Кол-во', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика',
-          'Очищенная выручка', 'Сумма закупки','Сумма брака','Доход']
-sum_list_pr=['Кол-во','Сумма закупки', 'Сумма брака', 'Логистика', 'Хранение', 'Удержания','Очищенная выручка','Доход']
+sum_list = ['Кол-во', 'Реализация ВБ', 'Вознаграждение ВБ', 'Логистика',
+            'Очищенная выручка', 'Сумма закупки', 'Сумма брака', 'Доход']
+sum_list_pr = ['Кол-во', 'Сумма закупки', 'Сумма брака', 'Логистика', 'Хранение', 'Удержания', 'Очищенная выручка',
+               'Доход']
 
 df_f = df_analitic[0].copy(deep=True)
 df_pr_lost = df_analitic[1].copy(deep=True)
@@ -55,7 +56,6 @@ list_df = [df_f, df_pr_lost]
 for df_ind in list_df:
     df_ind['Дата начала'] = pd.to_datetime(df_ind['Дата начала'], format='%d/%m/%Y')
     df_ind["Месяц"] = df_ind['Дата начала'].dt.month.astype(str).str.zfill(2)
-
 
 year_f = df_f['Дата начала'].dt.year.astype(str)[0]
 
@@ -153,4 +153,3 @@ with pd.ExcelWriter(report_pivot, engine='xlsxwriter') as wb:
     cell_format.set_bg_color('#FDCFC5')
     cell_format.set_font_size(14)
     cell_format.set_num_format(4)
-
