@@ -52,7 +52,8 @@ for client in clients:
     df_sum_client = open_other(name_summary, client)
 
     if flag_price_summary:
-        df_price = pd.concat([df_price, df_price_client], axis=0, ignore_index=True)
+        df_price = pd.concat([df_price, df_price_client],
+                             axis=0, ignore_index=True)
         df_sum = pd.concat([df_sum, df_sum_client], axis=0, ignore_index=True)
 
     else:
@@ -63,7 +64,8 @@ for client in clients:
     path_to_data = f'/Users/uginpo/OneDrive - gxog/Отчеты ВБ/{client}/Сведенные/'
 
     df_sum['Дата начала'] = pd.to_datetime(df_sum['Дата начала'])
-    old_report_list = df_sum.loc[df_sum['Дата начала'].dt.date < date_new_report, '№ отчета'].astype(str) + '.xlsx'
+    old_report_list = df_sum.loc[df_sum['Дата начала'].dt.date <
+                                 date_new_report, '№ отчета'].astype(str) + '.xlsx'
 
     num_reports = pd.Series(os.listdir(path_to_data))
     num_reports = num_reports[num_reports.str.match("^[0-9]")]
@@ -76,7 +78,8 @@ for client in clients:
         if flag_weekly_reports:
             if weekly_reports['Номер отчета'].isin([report_dig]).sum() == 0:
                 df = open_other(name_list_report, client, report_dig)
-                weekly_reports = pd.concat([weekly_reports, df], axis=0, ignore_index=True)
+                weekly_reports = pd.concat(
+                    [weekly_reports, df], axis=0, ignore_index=True)
         else:
             df = open_other(name_list_report, client, report_dig)
             weekly_reports = df.copy(deep=True)

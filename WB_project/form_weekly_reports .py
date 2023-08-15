@@ -7,6 +7,7 @@ import datetime
 import sidetable
 import locale
 import sys
+from variables import *
 
 pd.set_option('display.float_format', '{:.2f}'.format)
 
@@ -102,9 +103,11 @@ df_profit_col = ['Месяц', 'Номер отчета', 'Кол-во', 'Сум
 
 # ### Открытие списка отчетов и прайслиста
 
-weekly_reports = pd.read_pickle(f'{path_to_database}weekly_reports_wb.pkl')
-price_list = pd.read_pickle(f'{path_to_database}price_list_wb.pkl')
-summary_report = pd.read_pickle(f'{path_to_database}summary_report_wb.pkl')
+weekly_reports = pd.read_parquet(
+    f'{path_to_database}weekly_reports_wb.parquet')
+price_list = pd.read_parquet(f'{path_to_database}price_list_wb.parquet')
+summary_report = pd.read_parquet(
+    f'{path_to_database}summary_report_wb.parquet')
 
 # ### Удаляем служебные строки WB
 # удаление пустых строк
